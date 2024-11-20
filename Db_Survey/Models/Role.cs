@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Db_Survey.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 
 namespace TestEntitySurvey.Models
 {
