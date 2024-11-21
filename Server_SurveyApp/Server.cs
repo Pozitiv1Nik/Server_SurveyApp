@@ -77,7 +77,7 @@ namespace Server
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
                         var respons = await ProcessMessageAsync(message);
                         Console.WriteLine($"Message to sent: {respons}");
-                        await SendMessageTo(client,respons);
+                        await SendMessageToClient(respons);
 
                     }
                 }
@@ -88,16 +88,25 @@ namespace Server
             }
         }
 
-        public async Task SendMessageTo(TcpClient client, string message)
+        public async Task SendMessageToClient(string message)
         {
-            if (client.Connected)
+            List<TcpClient> clientsSnapshot;
+            lock (_clients)
+            {
+                clientsSnapshot = new List<TcpClient>(_clients);
+            }
+
+            var responseBuffer = Encoding.UTF8.GetBytes(message);
+            foreach (var client in clientsSnapshot)
             {
                 try
                 {
-                    var stream = client.GetStream();
-                    var responseBuffer = Encoding.UTF8.GetBytes(message);
-                    await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-                    Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+                    if (client.Connected)
+                    {
+                        var stream = client.GetStream();
+                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                        Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -106,36 +115,7 @@ namespace Server
             }
         }
 
-
-
-        //public async Task SendMessageToClient(string message)
-        //{
-        //    List<TcpClient> clientsSnapshot;
-        //    lock (_clients)
-        //    {
-        //        clientsSnapshot = new List<TcpClient>(_clients);
-        //    }
-
-        //    var responseBuffer = Encoding.UTF8.GetBytes(message);
-        //    foreach (var client in clientsSnapshot)
-        //    {
-        //        try
-        //        {
-        //            if (client.Connected)
-        //            {
-        //                var stream = client.GetStream();
-        //                await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-        //                Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Console.WriteLine($"Error sending message to client: {ex.Message}");
-        //        }
-        //    }
-        //}
-
-        //
+        
         private async  Task<bool> HandleLogin(string username, string password)
         {
             
