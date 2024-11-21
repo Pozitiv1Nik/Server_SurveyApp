@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,6 +69,8 @@ namespace Server
 
                         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
+
+                        ProcessMessage(message);
                     }
                 }
                 catch (Exception ex)
@@ -103,6 +104,83 @@ namespace Server
                 {
                     Console.WriteLine($"Error sending message to client: {ex.Message}");
                 }
+            }
+        }
+        //
+        private bool ValidateLogin(string username, string password)
+        {
+            
+            var testUsers = new Dictionary<string, string>
+            {
+                { "admin", "admin123" },
+                { "user1", "password1" }
+            };
+
+            return testUsers.ContainsKey(username) && testUsers[username] == password;
+        }
+        //
+        private bool RegisterUser(string username, string password)
+        {
+            
+            var testUsers = new Dictionary<string, string>
+            {
+                { "admin", "admin123" },
+                { "user1", "password1" }
+            };
+
+            if (testUsers.ContainsKey(username))
+            {
+                return false;
+            }
+
+            Console.WriteLine($"Registering user: {username} with password: {password}");
+            return true;
+        }
+        //
+        private void HandleLogin(string username, string password)
+        {
+            if (ValidateLogin(username, password))
+            {
+                Console.WriteLine($"Login successful for user: {username}");
+            }
+            else
+            {
+                Console.WriteLine($"Login failed for user: {username}");
+            }
+        }
+        //
+        private void HandleRegister(string username, string password)
+        {
+            if (RegisterUser(username, password))
+            {
+                Console.WriteLine($"User {username} successfully registered.");
+            }
+            else
+            {
+                Console.WriteLine($"Registration failed: user {username} already exists.");
+            }
+        }
+        //
+        private void ProcessMessage(string message)
+        {
+            var parts = message.Split(' ');
+            var command = parts[0];
+            var username = parts.Length > 1 ? parts[1] : string.Empty;
+            var password = parts.Length > 2 ? parts[2] : string.Empty;
+
+            switch (command.ToUpper())
+            {
+                case "LOGIN":
+                    HandleLogin(username, password);
+                    break;
+
+                case "REGISTER":
+                    HandleRegister(username, password);
+                    break;
+
+                default:
+                    Console.WriteLine("Unknown command received: " + command);
+                    break;
             }
         }
     }
