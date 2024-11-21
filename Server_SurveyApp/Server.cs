@@ -71,8 +71,9 @@ namespace Server
 
                         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
-
-                        ProcessMessage(message);
+                        var respons = await ProcessMessageAsync(message);
+                        Console.WriteLine($"Message to sent: {respons}");
+                        await SendMessageTo(client,respons);
 
                     }
                 }
@@ -83,25 +84,16 @@ namespace Server
             }
         }
 
-        public async Task SendMessageToClient(string message)
+        public async Task SendMessageTo(TcpClient client, string message)
         {
-            List<TcpClient> clientsSnapshot;
-            lock (_clients)
-            {
-                clientsSnapshot = new List<TcpClient>(_clients);
-            }
-
-            var responseBuffer = Encoding.UTF8.GetBytes(message);
-            foreach (var client in clientsSnapshot)
+            if (client.Connected)
             {
                 try
                 {
-                    if (client.Connected)
-                    {
-                        var stream = client.GetStream();
-                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-                        Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
-                    }
+                    var stream = client.GetStream();
+                    var responseBuffer = Encoding.UTF8.GetBytes(message);
+                    await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                    Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
                 }
                 catch (Exception ex)
                 {
@@ -110,8 +102,37 @@ namespace Server
             }
         }
 
+
+
+        //public async Task SendMessageToClient(string message)
+        //{
+        //    List<TcpClient> clientsSnapshot;
+        //    lock (_clients)
+        //    {
+        //        clientsSnapshot = new List<TcpClient>(_clients);
+        //    }
+
+        //    var responseBuffer = Encoding.UTF8.GetBytes(message);
+        //    foreach (var client in clientsSnapshot)
+        //    {
+        //        try
+        //        {
+        //            if (client.Connected)
+        //            {
+        //                var stream = client.GetStream();
+        //                await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+        //                Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Error sending message to client: {ex.Message}");
+        //        }
+        //    }
+        //}
+
         //
-        private void HandleLogin(string username, string password)
+        private bool HandleLogin(string username, string password)
         {
             
             var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
@@ -120,57 +141,59 @@ namespace Server
             if (user != null && user.Password == password) 
             {
                 Console.WriteLine($"Login successful for user: {username}");
+                return true;
             }
             else
             {
                 Console.WriteLine($"Login failed for user: {username}");
+                return false;
             }
         }
 
-        private void HandleRegister(string username, string password)
+        private async Task<bool> HandleRegister(string username, string password)
         {
-            
             var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
 
-            if (!manager.CheckUser(username, password)) 
+            if (!await manager.CheckUserAsync(username, password))
             {
                 var newUser = new User
                 {
                     Login = username,
                     Password = password,
-                    RoleId = 1 
+                    RoleId = 1
                 };
-
-                manager.AddUser(newUser); 
+                await manager.AddUserAsync(newUser);
                 Console.WriteLine($"User {username} successfully registered.");
+                return true;
             }
             else
             {
                 Console.WriteLine($"Registration failed: user {username} already exists.");
+                return false;
             }
         }
 
         //
-        private void ProcessMessage(string message)
+        private async Task<string> ProcessMessageAsync(string message)
         {
             var parts = message.Split(' ');
             var command = parts[0];
             var username = parts.Length > 1 ? parts[1] : string.Empty;
             var password = parts.Length > 2 ? parts[2] : string.Empty;
 
-            switch (command.ToUpper())
+            switch (command)
             {
                 case "LOGIN":
-                    HandleLogin(username, password);
-                    break;
+                    bool isValidLog = await Task.Run(() => HandleLogin(username, password)); 
+                    return isValidLog ? "LOGIN_SUCCESS" : "ERROR_WRONG_CREDENTIALS";
 
                 case "REGISTER":
-                    HandleRegister(username, password);
-                    break;
+                    bool isValidReg = await Task.Run(() => HandleRegister(username, password)); 
+                    return isValidReg ? "REGISTER_SUCCESS" : "ERROR_USER_EXISTS";
 
                 default:
                     Console.WriteLine("Unknown command received: " + command);
-                    break;
+                    return "ERROR_UNKNOWN_COMMAND";
             }
         }
     }

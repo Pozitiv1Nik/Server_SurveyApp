@@ -20,8 +20,7 @@ namespace Server_SurveyApp
             while (true)
             {
                 Console.WriteLine("Choose an action:");
-                Console.WriteLine("1. Send Message to Clients");
-                Console.WriteLine("2. Stop Server");
+                Console.WriteLine("1. Stop Server");
                 Console.Write("Enter your choice: ");
 
                 var choice = Console.ReadLine();
@@ -29,18 +28,6 @@ namespace Server_SurveyApp
                 switch (choice)
                 {
                     case "1":
-                        Console.Write("Enter message to send: ");
-                        var message = Console.ReadLine();
-                        if (!string.IsNullOrEmpty(message))
-                        {
-                            await server.SendMessageToClient(message);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Message cannot be empty.");
-                        }
-                        break;
-                    case "2":
                         server.Stop();
                         return;
                     default:

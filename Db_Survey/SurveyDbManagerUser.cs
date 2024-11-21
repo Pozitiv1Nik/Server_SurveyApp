@@ -22,13 +22,20 @@ namespace Db_Survey
 
         public void AddUser(User user)
         {
-            
-            if(user != null)
+            try
             {
-                Context.Users.Add(user);
-                Context.SaveChanges();
+                if (user != null)
+                {
+                    Context.Users.Add(user);
+                    Context.SaveChanges();
+                }
             }
-            throw new NotImplementedException("Object has NULL");
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
         }
         public async Task AddUserAsync(User user)
         {
@@ -51,8 +58,18 @@ namespace Db_Survey
 
 
         public async Task<bool> CheckUserAsync(string login,string password)
-        {      
-          return await Context.Users.AnyAsync(item => item.Login == login);
+        {
+            try
+            {
+                return await Context.Users.AnyAsync(item => item.Login == login);
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return false; 
+            }
         }
 
         public List<User> GetUsers()
