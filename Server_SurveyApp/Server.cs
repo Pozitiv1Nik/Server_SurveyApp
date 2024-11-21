@@ -70,6 +70,7 @@ namespace Server
 
                         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
+
                     }
                 }
                 catch (Exception ex)
