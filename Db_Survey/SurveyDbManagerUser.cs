@@ -11,9 +11,9 @@ using TestEntitySurvey;
 
 namespace Db_Survey
 {
-    internal class SurveyDbManagerUser
+    public class SurveyDbManagerUser
     {
-        public SurveyDbContext Context { get; set; }
+        private SurveyDbContext Context { get; set; }
 
         public SurveyDbManagerUser(SurveyDbContext context)
         {

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TestEntitySurvey
 {
-    internal class SurveyDbContextFactory : IDesignTimeDbContextFactory<SurveyDbContext>
+    public class SurveyDbContextFactory : IDesignTimeDbContextFactory<SurveyDbContext>
     {
         public SurveyDbContext CreateDbContext(string[] args)
         {

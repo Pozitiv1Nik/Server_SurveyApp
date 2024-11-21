@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Db_Survey.Models
 {
-    internal class User
+    public class User
     {
 
         public int Id { get; set; }

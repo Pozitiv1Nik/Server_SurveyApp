@@ -10,7 +10,7 @@ using TestEntitySurvey.Models;
 
 namespace Db_Survey.Models
 {
-    internal class Survey
+    public class Survey
     {
         
         public int Id { get; set; }

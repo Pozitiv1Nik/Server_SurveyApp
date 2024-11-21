@@ -9,7 +9,7 @@ using Db_Survey.Models;
 
 namespace TestEntitySurvey
 {
-    internal class SurveyDbContext: DbContext
+    public class SurveyDbContext: DbContext
     {
         public DbSet<Survey> Surveys { get; set; }
 

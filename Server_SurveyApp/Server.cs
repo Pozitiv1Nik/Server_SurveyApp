@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
-
+using Db_Survey;
+using TestEntitySurvey;
+using Db_Survey.Models;
 namespace Server
 {
     public class Server
@@ -107,40 +109,15 @@ namespace Server
                 }
             }
         }
-        //
-        private bool ValidateLogin(string username, string password)
-        {
-            
-            var testUsers = new Dictionary<string, string>
-            {
-                { "admin", "admin123" },
-                { "user1", "password1" }
-            };
 
-            return testUsers.ContainsKey(username) && testUsers[username] == password;
-        }
-        //
-        private bool RegisterUser(string username, string password)
-        {
-            
-            var testUsers = new Dictionary<string, string>
-            {
-                { "admin", "admin123" },
-                { "user1", "password1" }
-            };
-
-            if (testUsers.ContainsKey(username))
-            {
-                return false;
-            }
-
-            Console.WriteLine($"Registering user: {username} with password: {password}");
-            return true;
-        }
         //
         private void HandleLogin(string username, string password)
         {
-            if (ValidateLogin(username, password))
+            
+            var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
+            var user = manager.GetUserByLogin(username); 
+
+            if (user != null && user.Password == password) 
             {
                 Console.WriteLine($"Login successful for user: {username}");
             }
@@ -149,11 +126,22 @@ namespace Server
                 Console.WriteLine($"Login failed for user: {username}");
             }
         }
-        //
+
         private void HandleRegister(string username, string password)
         {
-            if (RegisterUser(username, password))
+            
+            var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
+
+            if (!manager.CheckUser(username, password)) 
             {
+                var newUser = new User
+                {
+                    Login = username,
+                    Password = password,
+                    RoleId = 1 
+                };
+
+                manager.AddUser(newUser); 
                 Console.WriteLine($"User {username} successfully registered.");
             }
             else
@@ -161,6 +149,7 @@ namespace Server
                 Console.WriteLine($"Registration failed: user {username} already exists.");
             }
         }
+
         //
         private void ProcessMessage(string message)
         {

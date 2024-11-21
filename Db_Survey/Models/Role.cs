@@ -16,7 +16,7 @@ namespace TestEntitySurvey.Models
         Admin = 2 
     }
 
-    internal class Role
+    public class Role
     {   
         public int Id { get; set; }
 

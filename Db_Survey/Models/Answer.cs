@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace TestEntitySurvey.Models
 {
-    internal class Answer
+    public class Answer
     {
         public int Id { get; set; }
 
