@@ -71,6 +71,7 @@ namespace Server
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
 
                         ProcessMessage(message);
+
                     }
                 }
                 catch (Exception ex)
