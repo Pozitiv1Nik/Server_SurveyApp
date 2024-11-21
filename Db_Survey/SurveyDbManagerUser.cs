@@ -39,15 +39,20 @@ namespace Db_Survey
         }
         public async Task AddUserAsync(User user)
         {
-
-            if (user != null)
+            try
             {
-                await Context.Users.AddAsync(user);
-                await Context.SaveChangesAsync();
+                if (user != null)
+                {
+                    await Context.Users.AddAsync(user);
+                    await Context.SaveChangesAsync();
+                }
+
             }
-            throw new NotImplementedException("Object has NULL");
+            catch (Exception ex) {
+                throw new NotImplementedException("Object has NULL");
 
-
+            }
+          
         }
 
         public bool CheckUser(string login,string password)
@@ -83,11 +88,10 @@ namespace Db_Survey
             return await Context.Users.ToListAsync();
         }
 
-        public async Task<User> GetUsersByLoginAsync(string login)
+        public async Task<User> GetUserByLoginAsync(string login)
         {
             return await Context.Users.FirstOrDefaultAsync(u => u.Login == login);
         }
-
 
         public User GetUserByLogin(string login) 
         { 
@@ -98,13 +102,13 @@ namespace Db_Survey
 
         public User GetUserByPassword(string password)
         {
-            return Context.Users.FirstOrDefault(u => u.Password == u.Password);
+            return Context.Users.FirstOrDefault(u => u.Password == password);
 
         }
 
         public async Task<User> GetUserByPasswordAsync(string password)
         {
-            return await Context.Users.FirstOrDefaultAsync(u => u.Password == u.Password);
+            return await Context.Users.FirstOrDefaultAsync(u => u.Password == password);
 
         }
 

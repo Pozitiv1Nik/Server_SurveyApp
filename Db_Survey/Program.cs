@@ -12,6 +12,9 @@ namespace Db_Survey
             using (var db = factory.CreateDbContext(args))
             {
 
+             
+
+
                 //Role role = new Role();
                 //{
                 //    role.UserType = Roles.Customer;
@@ -46,6 +49,8 @@ namespace Db_Survey
                 //    Console.WriteLine(item.Password);
 
                 //}
+
+
 
             }
 

@@ -15,6 +15,7 @@ namespace Server
         private TcpListener? _listener;
         private List<TcpClient> _clients = new List<TcpClient>();
         private CancellationTokenSource? _cancellationTokenSource;
+        private SurveyDbContext _surveyDbContext;
 
         public void Start(string ipAddress, int port)
         {
@@ -22,6 +23,9 @@ namespace Server
             _listener.Start();
             _cancellationTokenSource = new CancellationTokenSource();
             Console.WriteLine($"Server started on {ipAddress}:{port}");
+
+            var factory = new SurveyDbContextFactory();
+            _surveyDbContext = factory.CreateDbContext(null);
 
             _ = Task.Run(AcceptClientsAsync);
         }
@@ -132,11 +136,11 @@ namespace Server
         //}
 
         //
-        private bool HandleLogin(string username, string password)
+        private async  Task<bool> HandleLogin(string username, string password)
         {
             
-            var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
-            var user = manager.GetUserByLogin(username); 
+            var manager = new SurveyDbManagerUser(_surveyDbContext);
+            var user = await manager.GetUserByLoginAsync(username); 
 
             if (user != null && user.Password == password) 
             {
@@ -152,7 +156,7 @@ namespace Server
 
         private async Task<bool> HandleRegister(string username, string password)
         {
-            var manager = new SurveyDbManagerUser(new SurveyDbContextFactory().CreateDbContext(null));
+            var manager = new SurveyDbManagerUser(_surveyDbContext);
 
             if (!await manager.CheckUserAsync(username, password))
             {

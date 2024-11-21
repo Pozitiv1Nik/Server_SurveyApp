@@ -28,6 +28,10 @@ namespace TestEntitySurvey
 
            Database.EnsureCreated();
 
+
+            this.Roles.Add(new Role { UserType = Models.Roles.Customer });
+
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +40,11 @@ namespace TestEntitySurvey
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Login)
                 .IsUnique(); 
+
+           
+               
+
+
 
 
         }
