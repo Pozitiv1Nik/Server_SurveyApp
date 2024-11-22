@@ -39,12 +39,17 @@ namespace TestEntitySurvey
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Login)
-                .IsUnique(); 
+                .IsUnique();
 
-           
-               
-
-
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.Property(r => r.UserType)
+                      .HasConversion(
+                          v => v.ToString(),
+                          v => (Roles)Enum.Parse(typeof(Roles), v)
+                      )
+                      .IsRequired();
+            });
 
 
         }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Db_Survey.Models;
 using Microsoft.EntityFrameworkCore;
 using TestEntitySurvey;
+using TestEntitySurvey.Models;
 
 namespace Db_Survey
 {
@@ -112,13 +113,10 @@ namespace Db_Survey
 
         }
 
-
-
         public List<User> GetUsersCustomer()
-        {
-
+        {  
             return Context.Users.Where(u => u.RoleId == 1).ToList();
-
+            
         }
       
         public List<User> GetUsersAdmin()
