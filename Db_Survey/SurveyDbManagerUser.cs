@@ -38,6 +38,13 @@ namespace Db_Survey
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
             }
         }
+
+        public async Task<bool> IsAdminAsync(string login,string password)
+        {
+           return await Context.Users.AnyAsync(item => item.Login == login && item.RoleId == 2);
+            
+        }
+
         public async Task AddUserAsync(User user)
         {
             try
@@ -58,7 +65,7 @@ namespace Db_Survey
 
         public bool CheckUser(string login,string password)
         {
-            return Context.Users.Any(item => item.Login == login);
+            return Context.Users.Any(item => item.Login == login && item.Password == password);
   
         }
 
@@ -67,7 +74,7 @@ namespace Db_Survey
         {
             try
             {
-                return await Context.Users.AnyAsync(item => item.Login == login);
+                return await Context.Users.AnyAsync(item => item.Login == login && item.Password == password);
             }
             catch (Exception ex) 
             {

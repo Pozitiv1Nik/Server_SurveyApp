@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace TestEntitySurvey
 {
-    internal class SurveyDbManagerSurvey
+    public class SurveyDbManagerSurvey
     {
 
         public SurveyDbContext Context { get; set; }

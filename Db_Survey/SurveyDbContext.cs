@@ -32,6 +32,14 @@ namespace TestEntitySurvey
             this.Roles.Add(new Role { UserType = Models.Roles.Customer });
 
 
+            this.Roles.Add(new Role { UserType = Models.Roles.Admin });
+
+            this.Users.Add(new User { Login = "Admin", Password = "123123Qq",  RoleId = 2});
+
+
+
+            this.SaveChanges();
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

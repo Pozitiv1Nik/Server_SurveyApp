@@ -8,6 +8,7 @@ using System.Net;
 using Db_Survey;
 using TestEntitySurvey;
 using Db_Survey.Models;
+using TestEntitySurvey.Models;
 namespace Server
 {
     public class Server
@@ -134,6 +135,16 @@ namespace Server
             }
         }
 
+        private async Task<bool>HandleAdmin(string username,string password)
+        {
+            var manager = new SurveyDbManagerUser(_surveyDbContext);
+            return await manager.IsAdminAsync(username,password);
+
+        }
+
+
+
+
         private async Task<bool> HandleRegister(string username, string password)
         {
             var manager = new SurveyDbManagerUser(_surveyDbContext);
@@ -185,6 +196,11 @@ namespace Server
             // Logic to delete survey from database or memory (pseudo-code)
             // DeleteSurveyFromDatabase(surveyId);
 
+            var manager = new SurveyDbManagerSurvey(_surveyDbContext);
+
+            manager.DeleteSurvey(int.Parse(surveyId));
+           
+
             var broadcastMessage = $"DELETE_SURVEY {surveyId}";
             await SendMessageToClient(broadcastMessage);
 
@@ -201,6 +217,9 @@ namespace Server
             switch (command)
             {
                 case "LOGIN":
+                    bool isAdminLog = await Task.Run(() => HandleAdmin(username, password));
+                    if (isAdminLog) return "LOGIN_SUCCESS_ADMIN";
+
                     bool isValidLog = await Task.Run(() => HandleLogin(username, password)); 
                     return isValidLog ? "LOGIN_SUCCESS" : "ERROR_WRONG_CREDENTIALS";
 
@@ -219,5 +238,7 @@ namespace Server
                     return "ERROR_UNKNOWN_COMMAND";
             }
         }
+
+      
     }
 }
