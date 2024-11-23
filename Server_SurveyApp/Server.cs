@@ -17,6 +17,8 @@ namespace Server
         private List<TcpClient> _clients = new List<TcpClient>();
         private CancellationTokenSource? _cancellationTokenSource;
         private SurveyDbContext _surveyDbContext;
+        private List<Survey> _surveys = new List<Survey>();
+
 
         public void Start(string ipAddress, int port)
         {
@@ -239,6 +241,35 @@ namespace Server
             }
         }
 
-      
+        //////
+        private void SaveSurveysToJson(List<Survey> surveys)
+        {
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(surveys, Newtonsoft.Json.Formatting.Indented);
+            System.IO.File.WriteAllText("surveys.json", json);
+            Console.WriteLine("Surveys saved to surveys.json");
+        }
+
+        private List<Survey> LoadSurveysFromJson()
+        {
+            if (System.IO.File.Exists("surveys.json"))
+            {
+                string json = System.IO.File.ReadAllText("surveys.json");
+                List<Survey> surveys = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Survey>>(json);
+                return surveys ?? new List<Survey>();
+            }
+            return new List<Survey>();
+        }
+
+        private async Task<string> HandleGetSurveys()
+        {
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(_surveys, Newtonsoft.Json.Formatting.Indented);
+            return json;
+        }
+
+       
+
+
+
+
     }
 }
