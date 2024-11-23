@@ -28,6 +28,7 @@ namespace Db_Survey.Models
         [ForeignKey("User")]
         public int UserId {  get; set; }
 
+        virtual public User User { get; set; }
 
         virtual  public List<Question> Questions { get; set; }
 

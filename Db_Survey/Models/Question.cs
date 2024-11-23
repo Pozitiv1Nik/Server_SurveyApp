@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Db_Survey.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,7 +23,7 @@ namespace TestEntitySurvey.Models
       
        virtual public List<Answer> Answers {  get; set; }
 
-
+       virtual public Survey Survey { get; set; }
 
     }
 }

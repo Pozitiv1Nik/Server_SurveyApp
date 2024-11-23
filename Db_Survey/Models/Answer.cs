@@ -18,7 +18,7 @@ namespace TestEntitySurvey.Models
         [ForeignKey("Question")]
         public int QuestionId {  get; set; }
 
-
+        virtual public Question Question { get; set; }
 
 
     }
