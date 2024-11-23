@@ -157,7 +157,40 @@ namespace Server
             }
         }
 
-        //
+        private async Task<string> HandleCreateSurvey(string surveyData)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+                surveyData,
+                @"^(\S+)\s+""([^""]+)""\s+(.+)$"
+            );
+
+            if (!match.Success)
+            {
+                Console.WriteLine("Invalid survey data format");
+                return "ERROR_INVALID_SURVEY_DATA";
+            }
+
+            var topic = match.Groups[1].Value;          
+            var description = match.Groups[2].Value;  
+            var options = match.Groups[3].Value.Split('|'); 
+
+            var surveyId = Guid.NewGuid().ToString();
+            var broadcastMessage = $"NEW_SURVEY {surveyId} {topic} \"{description}\" {string.Join("|", options)}";
+
+            await SendMessageToClient(broadcastMessage);
+            return "CREATE_SUCCESS";
+        }
+        private async Task<string> HandleDeleteSurvey(string surveyId)
+        {
+            // Logic to delete survey from database or memory (pseudo-code)
+            // DeleteSurveyFromDatabase(surveyId);
+
+            var broadcastMessage = $"DELETE_SURVEY {surveyId}";
+            await SendMessageToClient(broadcastMessage);
+
+            return "DELETE_SUCCESS";
+        }
+
         private async Task<string> ProcessMessageAsync(string message)
         {
             var parts = message.Split(' ');
@@ -174,6 +207,12 @@ namespace Server
                 case "REGISTER":
                     bool isValidReg = await Task.Run(() => HandleRegister(username, password)); 
                     return isValidReg ? "REGISTER_SUCCESS" : "ERROR_USER_EXISTS";
+
+                case "CREATE":
+                    return await HandleCreateSurvey(message.Substring(7));
+
+                case "DELETE":
+                    return await HandleDeleteSurvey(message.Substring(7));
 
                 default:
                     Console.WriteLine("Unknown command received: " + command);
