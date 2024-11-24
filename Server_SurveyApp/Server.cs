@@ -12,6 +12,7 @@ using TestEntitySurvey.Models;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 namespace Server
 {
     public class Server
@@ -98,24 +99,33 @@ namespace Server
         {
             if (clientIdentifier == null)
             {
-                
                 List<TcpClient> clientsSnapshot;
+
+
                 lock (_clients)
                 {
                     clientsSnapshot = new List<TcpClient>(_clients);
                 }
 
                 var responseBuffer = Encoding.UTF8.GetBytes(message);
+
                 foreach (var client in clientsSnapshot)
                 {
+                    if (client?.Client == null || !IsClientConnected(client))
+                    {
+                        Console.WriteLine("Skipping disconnected or invalid client.");
+                        continue;
+                    }
+
                     try
                     {
-                        if (client.Connected)
-                        {
-                            var stream = client.GetStream();
-                            await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-                            Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
-                        }
+                        var stream = client.GetStream();
+                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                        Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        Console.WriteLine("Client has been disposed. Skipping...");
                     }
                     catch (Exception ex)
                     {
@@ -125,33 +135,48 @@ namespace Server
             }
             else
             {
-                
                 TcpClient targetClient = null;
 
                 lock (_clients)
                 {
                     targetClient = _clients.FirstOrDefault(client =>
+                        client?.Client != null &&
                         client.Client.RemoteEndPoint?.ToString() == clientIdentifier);
                 }
 
-                if (targetClient != null && targetClient.Connected)
+                if (targetClient == null)
                 {
-                    try
-                    {
-                        var stream = targetClient.GetStream();
-                        var responseBuffer = Encoding.UTF8.GetBytes(message);
-                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-                        Console.WriteLine($"Sent message to client: {targetClient.Client.RemoteEndPoint}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error sending message to client {clientIdentifier}: {ex.Message}");
-                    }
+                    Console.WriteLine($"Client with identifier {clientIdentifier} not found.");
+                    return;
                 }
-                else
+
+                try
                 {
-                    Console.WriteLine($"Client with identifier {clientIdentifier} not found or disconnected.");
+                    var stream = targetClient.GetStream();
+                    var responseBuffer = Encoding.UTF8.GetBytes(message);
+                    await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                    Console.WriteLine($"Sent message to client: {targetClient.Client.RemoteEndPoint}");
                 }
+                catch (ObjectDisposedException)
+                {
+                    Console.WriteLine($"Client {clientIdentifier} has been disposed.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending message to client {clientIdentifier}: {ex.Message}");
+                }
+            }
+        }
+
+        private bool IsClientConnected(TcpClient client)
+        {
+            try
+            {
+                return !(client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0);
+            }
+            catch (SocketException)
+            {
+                return false;
             }
         }
 
@@ -319,14 +344,14 @@ namespace Server
 
                 var sendTasks = surveys.Select(survey =>
                 {
-                    var message = $"{survey.Title} \"{survey.Description}\" {string.Join(" | ", survey.Options)}";
+                    var message = $"NEW_SURVEY {survey.Id} {survey.Title} \"{survey.Description}\" {string.Join(" | ", survey.Options.Select(item => item.OptionText))}";
                     return SendMessageToClient(message,endPoint);
                 });
 
 
                 await Task.WhenAll(sendTasks);
 
-                return "GET_CONFIRMED";
+                return " GET_CONFIRMED";
             }
             catch (Exception ex)
             {
