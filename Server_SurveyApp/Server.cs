@@ -9,6 +9,8 @@ using Db_Survey;
 using TestEntitySurvey;
 using Db_Survey.Models;
 using TestEntitySurvey.Models;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 namespace Server
 {
     public class Server
@@ -185,24 +187,30 @@ namespace Server
 
             var topic = match.Groups[1].Value;          
             var description = match.Groups[2].Value;  
-            var options = match.Groups[3].Value.Split('|'); 
+            var options = match.Groups[3].Value.Split('|');
 
             var surveyId = Guid.NewGuid().ToString();
+
+            var surveyManager = new SurveyDbManagerSurvey(_surveyDbContext);
+
+           await surveyManager.AddSurveyAsync(topic, description, options);  
+            
+           _surveyDbContext.SaveChanges();
+     
             var broadcastMessage = $"NEW_SURVEY {surveyId} {topic} \"{description}\" {string.Join("|", options)}";
+
+            
 
             await SendMessageToClient(broadcastMessage);
             return "CREATE_SUCCESS";
         }
-        private async Task<string> HandleDeleteSurvey(string surveyId)
+        private async Task<string> HandleDeleteSurveyAsync(string surveyId)
         {
-            // Logic to delete survey from database or memory (pseudo-code)
-            // DeleteSurveyFromDatabase(surveyId);
-
+        
             var manager = new SurveyDbManagerSurvey(_surveyDbContext);
+            await manager.DeleteSurveyAsync(int.Parse(surveyId));
 
-            manager.DeleteSurvey(int.Parse(surveyId));
-           
-
+            
             var broadcastMessage = $"DELETE_SURVEY {surveyId}";
             await SendMessageToClient(broadcastMessage);
 
@@ -233,7 +241,7 @@ namespace Server
                     return await HandleCreateSurvey(message.Substring(7));
 
                 case "DELETE":
-                    return await HandleDeleteSurvey(message.Substring(7));
+                    return await HandleDeleteSurveyAsync(message.Substring(7));
 
                 default:
                     Console.WriteLine("Unknown command received: " + command);

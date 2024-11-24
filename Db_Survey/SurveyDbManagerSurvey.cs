@@ -7,6 +7,9 @@ using TestEntitySurvey.Models;
 using Db_Survey.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Primitives;
+using Db_Survey;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 
 namespace TestEntitySurvey
 {
@@ -79,11 +82,27 @@ namespace TestEntitySurvey
 
        }
 
-       public async Task AddSurveyAsync(Survey survey)
+       public async Task AddSurveyAsync(string title,string desc, string[] options)
        {
-            await Context.AddAsync(survey);
-            await Context.SaveChangesAsync();
-               
+            try
+            {
+                var survey = new Survey() {
+                    Date = DateTime.Now, Description = desc,
+                    Title = title,
+                    Options = options.Select(item => new Option { OptionText = item}).ToList()};
+
+                
+                await Context.AddAsync(survey);
+                await Context.SaveChangesAsync();
+  
+            }
+            catch (Exception ex) { 
+            
+            Console.WriteLine($"{ex.Message}\n{ex.InnerException.Message}");
+            throw;
+            
+            }
+                   
        }
 
 

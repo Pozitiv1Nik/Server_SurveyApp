@@ -13,9 +13,9 @@ namespace TestEntitySurvey
     {
         public DbSet<Survey> Surveys { get; set; }
 
-        public DbSet<Question> Question { get; set; }
+        public DbSet<Option> Options { get; set; }
 
-        public DbSet<Answer>Answers { get; set; }
+        public DbSet<Result> Results { get; set; }
 
         public DbSet<Role>Roles { get; set; }
 
