@@ -11,6 +11,7 @@ using Db_Survey.Models;
 using TestEntitySurvey.Models;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Storage.Json;
+using Microsoft.EntityFrameworkCore;
 namespace Server
 {
     public class Server
@@ -93,34 +94,71 @@ namespace Server
             }
         }
 
-        public async Task SendMessageToClient(string message)
+        public async Task SendMessageToClient(string message, string clientIdentifier = null)
         {
-            List<TcpClient> clientsSnapshot;
-            lock (_clients)
+            if (clientIdentifier == null)
             {
-                clientsSnapshot = new List<TcpClient>(_clients);
-            }
-
-            var responseBuffer = Encoding.UTF8.GetBytes(message);
-            foreach (var client in clientsSnapshot)
-            {
-                try
+                
+                List<TcpClient> clientsSnapshot;
+                lock (_clients)
                 {
-                    if (client.Connected)
+                    clientsSnapshot = new List<TcpClient>(_clients);
+                }
+
+                var responseBuffer = Encoding.UTF8.GetBytes(message);
+                foreach (var client in clientsSnapshot)
+                {
+                    try
                     {
-                        var stream = client.GetStream();
-                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
-                        Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+                        if (client.Connected)
+                        {
+                            var stream = client.GetStream();
+                            await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                            Console.WriteLine($"Sent message to client: {client.Client.RemoteEndPoint}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error sending message to client: {ex.Message}");
                     }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                
+                TcpClient targetClient = null;
+
+                lock (_clients)
                 {
-                    Console.WriteLine($"Error sending message to client: {ex.Message}");
+                    targetClient = _clients.FirstOrDefault(client =>
+                        client.Client.RemoteEndPoint?.ToString() == clientIdentifier);
+                }
+
+                if (targetClient != null && targetClient.Connected)
+                {
+                    try
+                    {
+                        var stream = targetClient.GetStream();
+                        var responseBuffer = Encoding.UTF8.GetBytes(message);
+                        await stream.WriteAsync(responseBuffer, 0, responseBuffer.Length);
+                        Console.WriteLine($"Sent message to client: {targetClient.Client.RemoteEndPoint}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error sending message to client {clientIdentifier}: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Client with identifier {clientIdentifier} not found or disconnected.");
                 }
             }
         }
 
-        
+
+
+
+
         private async  Task<bool> HandleLogin(string username, string password)
         {
             
@@ -270,11 +308,13 @@ namespace Server
 
         private async Task<string> HandleGetSurveys()
         {
-            string json = Newtonsoft.Json.JsonConvert.SerializeObject(_surveys, Newtonsoft.Json.Formatting.Indented);
+            var surveys = await _surveyDbContext.Surveys.ToListAsync(); 
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(surveys, Newtonsoft.Json.Formatting.Indented);
             return json;
         }
 
-       
+
+
 
 
 
