@@ -81,7 +81,7 @@ namespace Server
 
                         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                         Console.WriteLine($"Received message: {message}, from {clientEndpoint}");
-                        var respons = await ProcessMessageAsync(message);
+                        var respons = await ProcessMessageAsync(message,clientEndpoint);
                         Console.WriteLine($"Message to sent: {respons}");
                         await SendMessageToClient(respons);
 
@@ -255,7 +255,7 @@ namespace Server
             return "DELETE_SUCCESS";
         }
 
-        private async Task<string> ProcessMessageAsync(string message)
+        private async Task<string> ProcessMessageAsync(string message,string endPoint)
         {
             var parts = message.Split(' ');
             var command = parts[0];
@@ -280,6 +280,8 @@ namespace Server
 
                 case "DELETE":
                     return await HandleDeleteSurveyAsync(message.Substring(7));
+                case "GET_SURVEYS":
+                    return await HandleGetAndSendAllSurveysAsync(endPoint);
 
                 default:
                     Console.WriteLine("Unknown command received: " + command);
@@ -305,6 +307,35 @@ namespace Server
             }
             return new List<Survey>();
         }
+
+        private async Task<string> HandleGetAndSendAllSurveysAsync(string endPoint)
+        {
+            try
+            {
+                var surveyManager = new SurveyDbManagerSurvey(_surveyDbContext);
+
+                var surveys = await surveyManager.GetSurveysAsync();
+
+
+                var sendTasks = surveys.Select(survey =>
+                {
+                    var message = $"{survey.Title} \"{survey.Description}\" {string.Join(" | ", survey.Options)}";
+                    return SendMessageToClient(message,endPoint);
+                });
+
+
+                await Task.WhenAll(sendTasks);
+
+                return "GET_CONFIRMED";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in HandleGetAndSendAllSurveys: {ex.Message}");
+                return "ERROR";
+            }
+        }
+
+
 
         private async Task<string> HandleGetSurveys()
         {
