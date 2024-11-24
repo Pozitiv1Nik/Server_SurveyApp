@@ -235,7 +235,7 @@ namespace Server
             }
         }
 
-        private async Task<string> HandleCreateSurvey(string surveyData)
+        private async Task<string> HandleCreateSurvey(string surveyData,string endPoint)
         {
             var match = System.Text.RegularExpressions.Regex.Match(
                 surveyData,
@@ -264,7 +264,7 @@ namespace Server
 
             
 
-            await SendMessageToClient(broadcastMessage);
+            await SendMessageToClient(broadcastMessage,endPoint);
             return "CREATE_SUCCESS";
         }
         private async Task<string> HandleDeleteSurveyAsync(string surveyId)
@@ -301,7 +301,7 @@ namespace Server
                     return isValidReg ? "REGISTER_SUCCESS" : "ERROR_USER_EXISTS";
 
                 case "CREATE":
-                    return await HandleCreateSurvey(message.Substring(7));
+                    return await HandleCreateSurvey(message.Substring(7),endPoint);
 
                 case "DELETE":
                     return await HandleDeleteSurveyAsync(message.Substring(7));
@@ -338,20 +338,23 @@ namespace Server
             try
             {
                 var surveyManager = new SurveyDbManagerSurvey(_surveyDbContext);
-
                 var surveys = await surveyManager.GetSurveysAsync();
 
-
-                var sendTasks = surveys.Select(survey =>
+                
+                var surveyMessages = surveys.Select(survey =>
                 {
                     var message = $"NEW_SURVEY {survey.Id} {survey.Title} \"{survey.Description}\" {string.Join(" | ", survey.Options.Select(item => item.OptionText))}";
-                    return SendMessageToClient(message,endPoint);
+                    return message;
                 });
 
+                
+                var allMessages = string.Join("\n", surveyMessages);
 
-                await Task.WhenAll(sendTasks);
+                
+                await SendMessageToClient(allMessages, endPoint);
 
-                return " GET_CONFIRMED";
+                
+                return "GET_CONFIRMED";
             }
             catch (Exception ex)
             {
