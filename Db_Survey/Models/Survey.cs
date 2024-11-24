@@ -23,14 +23,8 @@ namespace Db_Survey.Models
 
         public DateTime? Date {  get; set; }
 
+        virtual public List<Option> Options { get; set; }
 
-
-        [ForeignKey("User")]
-        public int UserId {  get; set; }
-
-        virtual public User User { get; set; }
-
-        virtual  public List<Question> Questions { get; set; }
 
     }
 }
