@@ -21,21 +21,32 @@ namespace Db_Survey
 
         public async Task AddResult(string optionText,int surveyId)
         {
-            Context.Results.AddAsync(new Result {SurveyId = surveyId,TextOption = optionText.Trim()});
-            Context.SaveChangesAsync();
+           await Context.Results.AddAsync(new Result {SurveyId = surveyId,TextOption = optionText.Trim()});
+           await Context.SaveChangesAsync();
 
 
         }
-        public async Task<int> GetCountVotesForResultAsync(int surveyId,string optionText)
+        public async Task<List<ResultGroup>> GetCountVotesForResultAsync(int surveyId)
         {
-            var voteCount = await Context.Results
-           .Where(v => v.SurveyId == surveyId && v.TextOption == optionText).CountAsync();
+            var groupedResults = await Context.Results
+            .Where(v => v.SurveyId == surveyId) 
+            .GroupBy(v => v.TextOption)       
+            .Select(g => new ResultGroup
+             {
+              OptionText = g.Key,          
+              VoteCount = g.Count()        
+            })
+             .ToListAsync();
 
-            return voteCount;
+            return groupedResults;
 
         }
 
-
+        public class ResultGroup
+        {
+            public string OptionText { get; set; } 
+            public int VoteCount { get; set; }   
+        }
 
 
     }
