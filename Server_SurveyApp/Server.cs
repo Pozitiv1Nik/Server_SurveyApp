@@ -323,25 +323,35 @@ namespace Server
         {
             var match = System.Text.RegularExpressions.Regex.Match(
             voteData,
-            @"^VOTE (\S+) ""(.+)""$"  
-            );
+            @"^VOTE (\S+) ""(.+)""$" 
+        );
 
             if (!match.Success)
             {
-               
                 return "ERROR_INVALID_VOTE_DATA";
             }
 
-            var surveyId = match.Groups[1].Value;    
-            var selectedOptionText = match.Groups[2].Value;  
+            var surveyId = match.Groups[1].Value;
+            var selectedOptionText = match.Groups[2].Value;
 
             Console.WriteLine($"Received vote for Survey ID: {surveyId}, Option: {selectedOptionText}");
 
             var managerResult = new SurveyDbManagerResult(_surveyDbContext);
-           await managerResult.AddResult(selectedOptionText,int.Parse(surveyId));
-            
+            await managerResult.AddResult(selectedOptionText, int.Parse(surveyId));
+
+            var updatedResults = await GetSurveyResultsAsync(int.Parse(surveyId));
+            var broadcastMessage = $"UPDATE_RESULTS {surveyId}|{string.Join("|", updatedResults)}";
+            await SendMessageToClient(broadcastMessage);
 
             return "VOTE_SUCCESS";
+        }
+
+        private async Task<List<string>> GetSurveyResultsAsync(int surveyId)
+        {
+            var managerResult = new SurveyDbManagerResult(_surveyDbContext);
+            var results = await managerResult.GetSurveyResultsAsync(surveyId);
+
+            return results.Select(result => $"{result.OptionText};{result.VoteCount}").ToList();
         }
 
         private List<Survey> LoadSurveysFromJson()

@@ -67,6 +67,7 @@ namespace Db_Survey
           
         }
 
+
         public bool CheckUser(string login,string password)
         {
             return Context.Users.Any(item => item.Login == login && item.Password == password);
