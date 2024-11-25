@@ -216,13 +216,8 @@ namespace Server
 
             if (!await manager.CheckUserAsync(username, password))
             {
-                var newUser = new User
-                {
-                    Login = username,
-                    Password = password,
-                    RoleId = 1
-                };
-                await manager.AddUserAsync(newUser);
+                manager.AddUserAsync(username, password);
+
                 Console.WriteLine($"User {username} successfully registered.");
                 return true;
             }
