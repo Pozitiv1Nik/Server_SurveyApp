@@ -235,7 +235,7 @@ namespace Server
             }
         }
 
-        private async Task<string> HandleCreateSurvey(string surveyData,string endPoint)
+        private async Task<string> HandleCreateSurvey(string surveyData)
         {
             var match = System.Text.RegularExpressions.Regex.Match(
                 surveyData,
@@ -252,19 +252,19 @@ namespace Server
             var description = match.Groups[2].Value;  
             var options = match.Groups[3].Value.Split('|');
 
-            var surveyId = Guid.NewGuid().ToString();
-
+            
+ 
             var surveyManager = new SurveyDbManagerSurvey(_surveyDbContext);
 
-           await surveyManager.AddSurveyAsync(topic, description, options);  
+          var addedObj =  await surveyManager.AddSurveyAsync(topic, description, options);  
             
-           _surveyDbContext.SaveChanges();
+          
      
-            var broadcastMessage = $"NEW_SURVEY {surveyId} {topic} \"{description}\" {string.Join("|", options)}";
+            var broadcastMessage = $"NEW_SURVEY {addedObj.Id} {topic} \"{description}\" {string.Join("|", options)}";
 
             
 
-            await SendMessageToClient(broadcastMessage,endPoint);
+            await SendMessageToClient(broadcastMessage);
             return "CREATE_SUCCESS";
         }
         private async Task<string> HandleDeleteSurveyAsync(string surveyId)
@@ -301,12 +301,15 @@ namespace Server
                     return isValidReg ? "REGISTER_SUCCESS" : "ERROR_USER_EXISTS";
 
                 case "CREATE":
-                    return await HandleCreateSurvey(message.Substring(7),endPoint);
+                    return await HandleCreateSurvey(message.Substring(7));
 
                 case "DELETE":
                     return await HandleDeleteSurveyAsync(message.Substring(7));
                 case "GET_SURVEYS":
                     return await HandleGetAndSendAllSurveysAsync(endPoint);
+
+                case "VOTE":
+                    return await HandleVoteAsync(message);
 
                 default:
                     Console.WriteLine("Unknown command received: " + command);
@@ -320,6 +323,32 @@ namespace Server
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(surveys, Newtonsoft.Json.Formatting.Indented);
             System.IO.File.WriteAllText("surveys.json", json);
             Console.WriteLine("Surveys saved to surveys.json");
+        }
+
+
+        private async Task<string> HandleVoteAsync(string voteData)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+            voteData,
+            @"^VOTE (\S+) ""(.+)""$"  
+            );
+
+            if (!match.Success)
+            {
+               
+                return "ERROR_INVALID_VOTE_DATA";
+            }
+
+            var surveyId = match.Groups[1].Value;    
+            var selectedOptionText = match.Groups[2].Value;  
+
+            Console.WriteLine($"Received vote for Survey ID: {surveyId}, Option: {selectedOptionText}");
+
+            var managerResult = new SurveyDbManagerResult(_surveyDbContext);
+           await managerResult.AddResult(selectedOptionText,int.Parse(surveyId));
+            
+
+            return "VOTE_SUCCESS";
         }
 
         private List<Survey> LoadSurveysFromJson()

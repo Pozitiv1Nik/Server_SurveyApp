@@ -25,12 +25,7 @@ namespace Db_Survey.Models
         [ForeignKey("Role")]
         public int RoleId {  get; set; }
 
-       virtual public List<Survey>Surveys { get; set; }
-
-
-
-
-
+      
 
     }
 }
