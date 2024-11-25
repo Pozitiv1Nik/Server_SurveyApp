@@ -256,10 +256,10 @@ namespace Server
  
             var surveyManager = new SurveyDbManagerSurvey(_surveyDbContext);
 
-          var addedObj =  await surveyManager.AddSurveyAsync(topic, description, options);  
-            
-          
-     
+            var addedObj = await surveyManager.AddSurveyAsync(topic, description, options);
+
+
+
             var broadcastMessage = $"NEW_SURVEY {addedObj.Id} {topic} \"{description}\" {string.Join("|", options)}";
 
             
