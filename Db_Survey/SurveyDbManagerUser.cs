@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Db_Survey.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestEntitySurvey;
 using TestEntitySurvey.Models;
 
@@ -45,15 +46,18 @@ namespace Db_Survey
             
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task AddUserAsync(string login,string password)
         {
             try
             {
-                if (user != null)
-                {
-                    await Context.Users.AddAsync(user);
-                    await Context.SaveChangesAsync();
-                }
+                var user = new User(){
+                    Login = login,
+                    Password = password,
+                    RoleId = 1
+                   };
+                
+               await Context.Users.AddAsync(user);
+               await Context.SaveChangesAsync(); 
 
             }
             catch (Exception ex) {
