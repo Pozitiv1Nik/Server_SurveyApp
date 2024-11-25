@@ -304,6 +304,8 @@ namespace Server
                 case "VOTE":
                     return await HandleVoteAsync(message);
 
+                
+
                 default:
                     Console.WriteLine("Unknown command received: " + command);
                     return "ERROR_UNKNOWN_COMMAND";
@@ -349,7 +351,7 @@ namespace Server
         private async Task<List<string>> GetSurveyResultsAsync(int surveyId)
         {
             var managerResult = new SurveyDbManagerResult(_surveyDbContext);
-            var results = await managerResult.GetSurveyResultsAsync(surveyId);
+            var results = await managerResult.GetCountVotesForResultAsync(surveyId);
 
             return results.Select(result => $"{result.OptionText};{result.VoteCount}").ToList();
         }
