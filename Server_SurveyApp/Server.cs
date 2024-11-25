@@ -210,8 +210,6 @@ namespace Server
         }
 
 
-
-
         private async Task<bool> HandleRegister(string username, string password)
         {
             var manager = new SurveyDbManagerUser(_surveyDbContext);
