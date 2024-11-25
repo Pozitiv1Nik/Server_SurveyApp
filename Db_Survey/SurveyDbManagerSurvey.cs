@@ -82,7 +82,7 @@ namespace TestEntitySurvey
 
        }
 
-       public async Task AddSurveyAsync(string title,string desc, string[] options)
+       public async Task<Survey> AddSurveyAsync(string title,string desc, string[] options)
        {
             try
             {
@@ -94,7 +94,7 @@ namespace TestEntitySurvey
                 
                 await Context.AddAsync(survey);
                 await Context.SaveChangesAsync();
-  
+                return survey;
             }
             catch (Exception ex) { 
             

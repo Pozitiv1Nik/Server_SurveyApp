@@ -11,15 +11,13 @@ namespace Db_Survey.Models
     {
         public int Id { get; set; }
 
-        [ForeignKey("Option")]
-        public int OptionId { get; set; }
+        [ForeignKey("Survey")]
+        public int SurveyId { get; set; }
 
-        [ForeignKey("User")]
-        public int UserId { get; set; } 
+        public virtual Survey Survey{ get; set; }
 
-        public virtual Option Option { get; set; }
-        public virtual User User { get; set; }
+        public string TextOption { get; set; }
 
-
+      
     }
 }
