@@ -42,7 +42,7 @@ namespace Db_Survey
 
         public async Task<bool> IsAdminAsync(string login,string password)
         {
-           return await Context.Users.AnyAsync(item => item.Login == login && item.RoleId == 2);
+           return await Context.Users.AnyAsync(item => item.Login == login && item.Password == password && item.RoleId == 2);
             
         }
 
